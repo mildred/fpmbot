@@ -5,6 +5,7 @@
 cjdns	git=https://github.com/cjdelisle/cjdns.git
 	clean=-fdx
 	ref=staging
-	fpmbuild=apt-get install -y curl python; ./do
+	preparecmd=apt-get install -y curl python
+	fpmbuild=./do
 	fpmgen=echo cjdroute=/usr/bin >.fpm; echo -s dir >>.fpm 
 

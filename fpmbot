@@ -60,11 +60,13 @@ update_repo(){
     local ref="$(var ref "$@")"
     local fpmgen="$(var fpmgen "$@")"
     local fpmbuild="$(var fpmbuild "$@")"
+    local preparecmd="$(var preparecmd "$@")"
     local clean="$(var clean "$@")"
     local rootdir="$PWD"
     : ${ref:=HEAD}
     : ${fpmgen:="$default_fpmgen"}
     : ${fpmbuild:="$default_fpmbuild"}
+    : ${preparecmd:=:}
     shift
     mkdir -p "src/$repo_id" "$rootdir/$repo.$timestamp"
     local head=""
@@ -94,6 +96,7 @@ update_repo(){
                 set -xe
                 git reset --hard
                 git clean -fx "*.deb"
+                eval "$preparecmd"
                 eval "$fpmgen"
                 eval "$fpmbuild"
             ); then
