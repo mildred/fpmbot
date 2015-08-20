@@ -16,6 +16,16 @@
     #    restart_policy: always
     #    volumes:
     #      - /var/lib/fpmbot:/var/lib/fpmbot
-    - shell: (docker stop fpmbot; docker rm fpmbot; true)
-    - command: docker run -d --restart=always -v /var/log/fpmbot:/var/log/fpmbot -v /var/lib/fpmbot:/var/lib/fpmbot --name=fpmbot fpmbot
-
+    - command: docker pull nginx
+    - command: docker pull mildred/nginx
+    - shell: (docker stop fpmbot fpmbot-nginx; docker rm fpmbot fpmbot-nginx; true)
+    - command: docker run -d --restart=always
+        -v /var/log/fpmbot:/var/log/fpmbot
+        -v /var/lib/fpmbot:/var/lib/fpmbot
+        --name=fpmbot
+        fpmbot
+    - command: docker run -d --restart=always
+        -v /var/lib/fpmbot:/usr/share/nginx/html:ro
+        --name=fpmbot-nginx
+        -e AUTOINDEX=ON
+        mildred/nginx

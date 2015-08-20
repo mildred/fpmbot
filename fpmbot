@@ -87,7 +87,7 @@ update_repo(){
             git reset "$ref"
         )
         local pkg="$(cat .fpmpkg)"
-        if [[ "$head" != "$(git rev-parse HEAD)" ]] || ! [[ -e .fpmpkg ]] || ! [[ -e .fpmok ]]; then
+        if [[ "$head" != "$(git rev-parse HEAD)" ]] || ! [[ -e .fpmpkg ]] || ! [[ -L .fpmok ]]; then
             rm -f .fpmok
             if [[ -n "$clean" ]]; then
                 (set -x; git clean $clean )
@@ -116,12 +116,12 @@ update_repo(){
                     pkg="$(tail -n 1 fpm.log | sed -re 's/^.*:path=>"(.*)"}$/\1/')"
                     echo "$pkg" >.fpmpkg
                     (set -x; cp "$pkg" "$rootdir/$repo.$timestamp")
-                    touch .fpmok
+                    ln -sf "$pkg" .fpmok
                 fi
             fi
         else
             echo "Using last build, nothing changed"
-            (set -x; ln -T "$rootdir/$repo/$pkg" "$rootdir/$repo.$timestamp/$pkg")
+            (set -x; ln -T "$rootdir/$repo/$pkg" "$pkg")
         fi
     )
 }
