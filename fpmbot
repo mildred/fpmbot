@@ -72,30 +72,39 @@ update_repo(){
     local head=""
     if [[ -e "src/$repo_id"/.git ]]; then
         head="$(cd src/$repo_id; git rev-parse HEAD)"
-    else
+    elif [[ -n "$git" ]]; then
         git clone "$git" "src/$repo_id" || return 1
     fi
     (
         cd "$rootdir/src/$repo_id"
-        local ver="$(git describe --always HEAD | sed  -r 's/^[^0-9]*//; s/[^0-9a-zA-Z]+/./g')"
-        (   set -x
-            cd "$rootdir/src/$repo_id"
-            git remote set-url origin "$git"
-            git checkout --detach 2>/dev/null
-            git fetch origin "+refs/*:refs/*" HEAD
-            git reset FETCH_HEAD
-            git reset "$ref"
-        )
+        local ver=0
+        if [[ -n "$git" ]]; then
+            ver="$(git describe --always HEAD | sed  -r 's/^[^0-9]*//; s/[^0-9a-zA-Z]+/./g')"
+            (   set -x
+                cd "$rootdir/src/$repo_id"
+                git remote set-url origin "$git"
+                git checkout --detach 2>/dev/null
+                git fetch origin "+refs/*:refs/*" HEAD
+                git reset FETCH_HEAD
+                git reset "$ref"
+            )
+        fi
         local pkg="$(cat .fpmpkg)"
         if [[ "$head" != "$(git rev-parse HEAD)" ]] || ! [[ -e .fpmpkg ]] || ! [[ -L .fpmok ]]; then
             rm -f .fpmok
-            if [[ -n "$clean" ]]; then
+            if [[ -n "$clean" ]] && [[ -n "$git" ]]; then
                 (set -x; git clean $clean )
+            fi
+            if [[ -n "$git" ]]; then
+                (   set -x
+                    git reset --hard
+                    git clean -fx "*.deb"
+                )
+            else
+                rm -f *.deb
             fi
             if ! (
                 set -xe
-                git reset --hard
-                git clean -fx "*.deb"
                 eval "$preparecmd"
                 eval "$fpmgen"
                 eval "$fpmbuild"
@@ -108,7 +117,7 @@ update_repo(){
                 fi
             else
                 echo >>.fpm \
-                        -t deb \
+                    -t deb \
                     --name "$repo_id" \
                     --version "$ver"
                 echo "+ fpm $(cat .fpm)" >&2

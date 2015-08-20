@@ -23,7 +23,7 @@ Once it is run, it will build each repository every 6 hours or when an inotify e
 
 A description file is line based. Comments are full lines starting with `#`, and line continuation is recognized by having the continuing line beginning with a TAB character. Each line is split on TAB character, and each element is then evaluated. The first element is the package name, ther others are in the form `key=value`. You can use:
 
-- `git=` (required): Git url
+- `git=` (optional): Git url
 - `clean=` (optional): Git clean options
 - `ref=` (optional): Git reference to build against
 - `preparecmd=` (optional): Command to execute before build (apt-get for example)
