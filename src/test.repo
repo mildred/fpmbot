@@ -5,6 +5,6 @@
 cjdns	git=https://github.com/cjdelisle/cjdns.git
 	clean=-fdx
 	ref=staging
-	fpmbuild=DEBIAN-FRONTEND=noninteractive apt-get install -y curl; ./do
+	fpmbuild=apt-get install -y curl; ./do
 	fpmgen=echo cjdroute=/usr/bin >.fpm; echo -s dir >>.fpm 
 

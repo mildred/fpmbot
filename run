@@ -5,6 +5,7 @@ exec 2>&1
 
 : ${FPMBOT_DIR:=/var/lib/fpmbot}
 export GIT_SSH="$(cd "$(dirname "$0")"; echo "$PWD")/ssh-wrapper"
+export DEBIAN_FRONTEND=noninteractive
 
 echo "$(date): Fpmbot starting"
 (cd "$FPMBOT_DIR"; fpmbot)
