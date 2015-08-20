@@ -160,14 +160,14 @@ for repo in src/*.repo; do
             IFS="$tab"
             repo_desc=($repo_desc)
             IFS="$old_ifs"
-            pkg="${repo_desc[1]}"
+            pkg="${repo_desc[0]}"
             echo "$repobase.$timestamp/$pkg: Starting build (date: $(date))"
-            (
+            {
                 echo "$repobase.$timestamp/$pkg: Starting build (date: $(date))"
                 update_repo "$repobase" "${repo_desc[@]}"
                 res=$?
                 echo "$repobase.$timestamp/$pkg: Build finished (code: $res, date: $(date))"
-            ) >"$repobase.$timestamp/fpmbot.$pkg.log" 2>&1
+            } >"$repobase.$timestamp/fpmbot.$pkg.log" 2>&1
             echo "$repobase.$timestamp/$pkg: Build finished (code: $res, date: $(date))"
         done
         dpkg-scanpackages "$repobase.$timestamp" | bzip2 -9c > "$repobase.$timestamp/Packages.bz2"

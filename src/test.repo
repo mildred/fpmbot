@@ -2,7 +2,7 @@
 	build=./.fpmbuild
 #repoid2	url=toto	path=p
 	titi=titi	tutu=with space
-cjdns	git=git@github.com:cjdelisle/cjdns
+cjdns	git=https://github.com/cjdelisle/cjdns.git
 	clean=-fdx
 	ref=staging
 	fpmbuild=./do
