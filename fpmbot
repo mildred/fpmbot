@@ -163,13 +163,14 @@ for repo in src/*.repo; do
             update_repo "$repobase" "${repo_desc[@]}"
         done
         dpkg-scanpackages "$repobase.$timestamp" | bzip2 -9c > "$repobase.$timestamp/Packages.bz2"
-        echo "fpmbot: $repobase updated to $repobase.$timestamp"
+        echo "fpmbot: $repobase updated to $repobase.$timestamp" >&3
         (set -x; ln -sfT "$repobase.$timestamp" "$repobase") 
         find . -maxdepth 1 -name "$repobase.*" -type d | sort -r | tail -n +10 | while read d; do
             (set +x; rm -rf "$d")
         done
     ) >"$repobase.$timestamp/fpmbot.log" 2>&1
 done
+echo "fpmbot: done"
 
 rm fpmbot.pid
 
