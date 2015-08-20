@@ -1,0 +1,21 @@
+---
+# vim: sts=2:sw=2:et
+- hosts: bots
+  gather_facts: no
+  tasks:
+    - copy: src=fpmbot.tar dest=/root/fpmbot.docker.tar
+    #- docker_image: name=fpmbot state=absent
+    #- shell: docker rmi fpmbot || true
+    - command: docker load -i /root/fpmbot.docker.tar
+    #- file: path=/root/fpmbot.docker.tar state=absent
+    - file: path=/var/lib/fpmbot state=directory
+    #- docker:
+    #    name: fpmbot
+    #    image: fpmbot
+    #    state: started
+    #    restart_policy: always
+    #    volumes:
+    #      - /var/lib/fpmbot:/var/lib/fpmbot
+    - shell: (docker stop fpmbot; docker rm fpmbot; true)
+    - command: docker run -d --restart=always -v /var/log/fpmbot:/var/log/fpmbot -v /var/lib/fpmbot:/var/lib/fpmbot --name=fpmbot fpmbot
+

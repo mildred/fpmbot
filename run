@@ -1,0 +1,13 @@
+#!/bin/bash
+# vim: sts=4:sw=4:et
+# Licence: GPLv3
+exec 2>&1
+
+: ${FPMBOT_DIR:=/var/lib/fpmbot}
+export GIT_SSH="$(dirname "$0")/ssh-wrapper"
+
+echo "$(date): Fpmbot starting"
+(cd "$FPMBOT_DIR"; fpmbot)
+inotifywait -t $((3600*6)) -e close_write -e create "$FPMBOT_DIR/src"
+# Restarted automatically by daemontools supervise
+

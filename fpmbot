@@ -1,0 +1,172 @@
+#!/bin/bash
+# vim: sts=4:sw=4:et
+# Licence: GPLv3
+
+tab="$(printf "\t")"
+timestamp="$(date +%Y%m%d.%H%M%S)"
+
+read_repo(){
+    local repo="$1"
+    sed -ne '
+        /^#/ d;
+        /^[^\t]/ {
+            $ ! x;
+            1 ! {
+                s/\n//g;
+                s/\t\t*/\t/g;
+                /^$/ ! p
+            }
+        };
+        /^\t/ {
+            x;
+            /^$/ ! {
+                x;
+                H
+            }
+            /^$/ {
+                x;
+                d
+            }
+        };
+        $ {
+            x;
+            s/\n//g;
+            s/\t\t*/\t/g;
+            /^$/ ! p
+        }' "$repo"
+}
+
+var(){
+    local name="$1"
+    shift
+    while [[ $# -gt 0 ]]; do
+        if [[ "x$name=${1#*=}" = "x$1" ]]; then
+            echo ${1#*=}
+            return 0
+        fi
+        shift
+    done
+    return 1
+}
+
+default_fpmgen='if [[ -x ./.fpmgen ]]; then ./.fpmgen; fi'
+default_fpmbuild="make && make DESTDIR=$PWD/fpmroot install"
+
+update_repo(){
+    local repo="$1"
+    shift
+    local repo_id="$1"
+    local git="$(var git "$@")"
+    local ref="$(var ref "$@")"
+    local fpmgen="$(var fpmgen "$@")"
+    local fpmbuild="$(var fpmbuild "$@")"
+    local clean="$(var clean "$@")"
+    local rootdir="$PWD"
+    : ${ref:=HEAD}
+    : ${fpmgen:="$default_fpmgen"}
+    : ${fpmbuild:="$default_fpmbuild"}
+    shift
+    mkdir -p "src/$repo_id" "$rootdir/$repo.$timestamp"
+    local head=""
+    if [[ -e "src/$repo_id"/.git ]]; then
+        head="$(cd src/$repo_id; git rev-parse HEAD)"
+    else
+        git clone "$git" "src/$repo_id" || return 1
+    fi
+    (
+        cd "$rootdir/src/$repo_id"
+        local ver="$(git describe --always HEAD | sed  -r 's/^[^0-9]*//; s/[^0-9a-zA-Z]+/./g')"
+        (   set -x
+            cd "$rootdir/src/$repo_id"
+            git remote set-url origin "$git"
+            git checkout --detach 2>/dev/null
+            git fetch origin "+refs/*:refs/*" HEAD
+            git reset FETCH_HEAD
+            git reset "$ref"
+        )
+        local pkg="$(cat .fpmpkg)"
+        if [[ "$head" != "$(git rev-parse HEAD)" ]] || ! [[ -e .fpmpkg ]] || ! [[ -e .fpmok ]]; then
+            rm -f .fpmok
+            if [[ -n "$clean" ]]; then
+                (set -x; git clean $clean )
+            fi
+            if ! (
+                set -xe
+                git reset --hard
+                git clean -fx "*.deb"
+                eval "$fpmgen"
+                eval "$fpmbuild"
+            ); then
+                echo "Build failed" >&2
+                if [[ -n "$pkg" ]]; then
+                    echo "Using last built package: $pkg" >&2
+                    echo "$pkg" >.fpmpkg
+                    (set -x; ln -T "$rootdir/$repo/$pkg" "$rootdir/$repo.$timestamp/$pkg")
+                fi
+            else
+                echo >>.fpm \
+                        -t deb \
+                    --name "$repo_id" \
+                    --version "$ver"
+                echo "+ fpm $(cat .fpm)" >&2
+                if fpm | tee fpm.log; then
+                    pkg="$(tail -n 1 fpm.log | sed -re 's/^.*:path=>"(.*)"}$/\1/')"
+                    echo "$pkg" >.fpmpkg
+                    (set -x; cp "$pkg" "$rootdir/$repo.$timestamp")
+                    touch .fpmok
+                fi
+            fi
+        else
+            (set -x; ln -T "$rootdir/$repo/$pkg" "$rootdir/$repo.$timestamp/$pkg")
+        fi
+    )
+}
+
+echonl(){
+    for line in "$@"; do
+        echo "$line"
+    done
+}
+
+for repo in *.repo; do
+    if [[ -e "${repo%.repo}.$timestamp" ]]; then
+        echo "${repo%.repo}.$timestamp: exists" >&2
+        exit 1
+    fi
+done
+
+while [[ -e fpmbot.pid ]]; do
+    pid=$(cat fpmbot.pid)
+    if ! [[ -e /proc/$pid ]]; then
+        rm fpmbot.pid
+    else
+        echo "Another fpmbot is already running. Terminating" >&2
+        exit 0
+    fi
+done
+echo $$ >fpmbot.pid
+
+mkdir -p src
+shopt -s nullglob
+for repo in src/*.repo; do
+    repobase="${repo%.repo}"
+    repobase="${repobase##*/}"
+    mkdir -p "$repobase.$timestamp"
+    (
+        read_repo "$repo" | while read repo_desc; do
+            old_ifs="$IFS"
+            IFS="$tab"
+            repo_desc=($repo_desc)
+            IFS="$old_ifs"
+            update_repo "$repobase" "${repo_desc[@]}"
+        done
+        dpkg-scanpackages "$repobase.$timestamp" | bzip2 -9c > "$repobase.$timestamp/Packages.bz2"
+        (set -x; ln -sfT "$repobase.$timestamp" "$repobase") 
+        find . -maxdepth 1 -name "$repobase.*" -type d | sort -r | tail -n +10 | while read d; do
+            (set +x; rm -rf "$d")
+        done
+    ) >"$repobase.$timestamp/fpmbot.log" 2>&1
+done
+
+rm fpmbot.pid
+

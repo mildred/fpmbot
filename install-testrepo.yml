@@ -1,0 +1,7 @@
+---
+# vim: sts=2:sw=2:et
+- hosts: bots
+  gather_facts: no
+  tasks:
+    - copy: src=src/test.repo dest=/var/lib/fpmbot/src/test.repo
+

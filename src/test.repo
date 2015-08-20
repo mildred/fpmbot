@@ -1,0 +1,9 @@
+#repoid	git=git@gitlab.com:user/repo.git		path=subpackage	gen=./.fpmgen
+	build=./.fpmbuild
+#repoid2	url=toto	path=p
+	titi=titi	tutu=with space
+cjdns	git=git@github.com:cjdelisle/cjdns
+	clean=-fdx
+	ref=staging
+	fpmbuild=./do
+	fpmgen=echo cjdroute=/usr/bin >.fpm; echo -s dir >>.fpm 
