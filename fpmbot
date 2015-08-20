@@ -117,6 +117,7 @@ update_repo(){
                 fi
             fi
         else
+            echo "Using last build, nothing changed"
             (set -x; ln -T "$rootdir/$repo/$pkg" "$rootdir/$repo.$timestamp/$pkg")
         fi
     )
