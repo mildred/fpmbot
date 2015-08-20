@@ -68,7 +68,7 @@ update_repo(){
     : ${fpmbuild:="$default_fpmbuild"}
     : ${preparecmd:=:}
     shift
-    mkdir -p "src/$repo_id" "$rootdir/$repo.$timestamp"
+    mkdir -p "src/$repo_id" "$debian/$repo.$timestamp"
     local head=""
     if [[ -e "src/$repo_id"/.git ]]; then
         head="$(cd src/$repo_id; git rev-parse HEAD)"
@@ -104,7 +104,7 @@ update_repo(){
                 if [[ -n "$pkg" ]]; then
                     echo "Using last built package: $pkg" >&2
                     echo "$pkg" >.fpmpkg
-                    (set -x; ln -T "$rootdir/$repo/$pkg" "$rootdir/$repo.$timestamp/$pkg")
+                    (set -x; ln -T "$rootdir/$repo/$pkg" "$debian/$repo.$timestamp/$pkg")
                 fi
             else
                 echo >>.fpm \
@@ -115,13 +115,13 @@ update_repo(){
                 if fpm | tee fpm.log; then
                     pkg="$(tail -n 1 fpm.log | sed -re 's/^.*:path=>"(.*)"}$/\1/')"
                     echo "$pkg" >.fpmpkg
-                    (set -x; cp "$pkg" "$rootdir/$repo.$timestamp")
+                    (set -x; cp "$pkg" "$debian/$repo.$timestamp")
                     ln -sf "$pkg" .fpmok
                 fi
             fi
         else
             echo "Using last build, nothing changed"
-            (set -x; ln -T "$rootdir/$repo/$pkg" "$pkg")
+            (set -x; ln -T "$pkg" "$debian/$repo.$timestamp/$pkg")
         fi
     )
 }
@@ -155,9 +155,11 @@ shopt -s nullglob
 for repo in src/*.repo; do
     repobase="${repo%.repo}"
     repobase="${repobase##*/}"
-    echo "fpmbot: Starting $repobase.$timestamp"    
+    echo "fpmbot: Starting ${repobase}.$timestamp"    
     exec 3>&1
-    mkdir -p "$repobase.$timestamp"
+    outdir="$PWD/web"
+    debian="$outdir/debian"
+    mkdir -p "$debian/${repobase}.$timestamp"
     (
         read_repo "$repo" | while read repo_desc; do
             old_ifs="$IFS"
@@ -165,22 +167,25 @@ for repo in src/*.repo; do
             repo_desc=($repo_desc)
             IFS="$old_ifs"
             pkg="${repo_desc[0]}"
-            echo "$repobase.$timestamp/$pkg: Starting build (date: $(date))"
+            echo "${repobase}.$timestamp/$pkg: Starting build (date: $(date))"
             {
-                echo "$repobase.$timestamp/$pkg: Starting build (date: $(date))"
+                echo "${repobase}.$timestamp/$pkg: Starting build (date: $(date))"
                 update_repo "$repobase" "${repo_desc[@]}"
                 res=$?
-                echo "$repobase.$timestamp/$pkg: Build finished (code: $res, date: $(date))"
-            } >"$repobase.$timestamp/fpmbot.$pkg.log" 2>&1
-            echo "$repobase.$timestamp/$pkg: Build finished (code: $res, date: $(date))"
+                echo "${repobase}.$timestamp/$pkg: Build finished (code: $res, date: $(date))"
+            } >"$debian/${repobase}.$timestamp/fpmbot.$pkg.log" 2>&1
+            echo "${repobase}.$timestamp/$pkg: Build finished (code: $res, date: $(date))"
         done
-        dpkg-scanpackages "$repobase.$timestamp" | bzip2 -9c > "$repobase.$timestamp/Packages.bz2"
-        echo "fpmbot: $repobase updated to $repobase.$timestamp" >&3
-        (set -x; ln -sfT "$repobase.$timestamp" "$repobase") 
-        find . -maxdepth 1 -name "$repobase.*" -type d | sort -r | tail -n +10 | while read d; do
-            (set +x; rm -rf "$d")
-        done
-    ) >"$repobase.$timestamp/fpmbot.log" 2>&1
+        (
+            cd "$debian"
+            dpkg-scanpackages "${repobase}.$timestamp" | bzip2 -9c > "${repobase}.$timestamp/Packages.bz2"
+            echo "fpmbot: $repobase updated to ${repobase}.$timestamp" >&3
+            (set -x; ln -sfT "${repobase}.$timestamp" "$repobase") 
+            find . -maxdepth 1 -name "${repobase}.*" -type d | sort -r | tail -n +10 | while read d; do
+                (set +x; rm -rf "$d")
+            done
+        )
+    ) >"$debian/${repobase}.$timestamp/fpmbot.log" 2>&1
 done
 echo "fpmbot: done"
 

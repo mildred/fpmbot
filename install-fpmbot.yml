@@ -25,7 +25,7 @@
         --name=fpmbot
         fpmbot
     - command: docker run -d --restart=always
-        -v /var/lib/fpmbot:/usr/share/nginx/html:ro
+        -v /var/lib/fpmbot/web:/usr/share/nginx/html:ro
         --name=fpmbot-nginx
         -e AUTOINDEX=ON
         mildred/nginx
