@@ -8,6 +8,6 @@ export GIT_SSH="$(cd "$(dirname "$0")"; echo "$PWD")/ssh-wrapper"
 
 echo "$(date): Fpmbot starting"
 (cd "$FPMBOT_DIR"; fpmbot)
-inotifywait -t $((3600*6)) -e close_write -e create "$FPMBOT_DIR/src"
+inotifywait -t $((3600*6)) "$FPMBOT_DIR/src"
 # Restarted automatically by daemontools supervise
 
