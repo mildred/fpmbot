@@ -151,6 +151,8 @@ shopt -s nullglob
 for repo in src/*.repo; do
     repobase="${repo%.repo}"
     repobase="${repobase##*/}"
+    echo "fpmbot: Starting $repobase.$timestamp"    
+    exec 3>&1
     mkdir -p "$repobase.$timestamp"
     (
         read_repo "$repo" | while read repo_desc; do
@@ -161,6 +163,7 @@ for repo in src/*.repo; do
             update_repo "$repobase" "${repo_desc[@]}"
         done
         dpkg-scanpackages "$repobase.$timestamp" | bzip2 -9c > "$repobase.$timestamp/Packages.bz2"
+        echo "fpmbot: $repobase updated to $repobase.$timestamp"
         (set -x; ln -sfT "$repobase.$timestamp" "$repobase") 
         find . -maxdepth 1 -name "$repobase.*" -type d | sort -r | tail -n +10 | while read d; do
             (set +x; rm -rf "$d")
