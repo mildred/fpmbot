@@ -50,7 +50,7 @@ var(){
 }
 
 default_fpmgen='if [[ -x ./.fpmgen ]]; then ./.fpmgen; fi'
-default_fpmbuild="make && make DESTDIR=$PWD/fpmroot install"
+default_fpmbuild="make DESTDIR=$PWD/fpmroot && make DESTDIR=$PWD/fpmroot install"
 
 update_repo(){
     local repo="$1"
@@ -94,7 +94,7 @@ update_repo(){
                 changed=false
             fi
         else
-            if [[ -e .fpmpkg ]] && [[ $(find -H . -type f -newer .fpmpkg | wc -l) -gt 0 ]]; then
+            if [[ -e .fpmpkg ]] && [[ $(find -H . -type f -newer .fpmpkg | wc -l) -eq 0 ]]; then
                 echo "Source directory unchanged, no files newer than $(stat -c %y .fpmpkg)"
                 changed=false
             fi
