@@ -50,7 +50,7 @@ var(){
 }
 
 default_fpmgen='if [[ -x ./.fpmgen ]]; then ./.fpmgen; fi'
-default_fpmbuild="make DESTDIR=$PWD/fpmroot && make DESTDIR=$PWD/fpmroot install"
+default_fpmbuild='make DESTDIR=$PWD/fpmroot && make DESTDIR=$PWD/fpmroot install'
 
 update_repo(){
     local repo="$1"
