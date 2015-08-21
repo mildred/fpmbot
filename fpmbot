@@ -78,6 +78,7 @@ update_repo(){
     (
         cd "$rootdir/src/$repo_id"
         local ver=0
+        local changed=true
         if [[ -n "$git" ]]; then
             ver="$(git describe --always HEAD | sed  -r 's/^[^0-9]*//; s/[^0-9a-zA-Z]+/./g')"
             (   set -x
@@ -88,9 +89,18 @@ update_repo(){
                 git reset FETCH_HEAD
                 git reset "$ref"
             )
+            if [[ "$head" = "$(git rev-parse HEAD)" ]]; then
+                echo "Git repository unchanged at $head"
+                changed=false
+            fi
+        else
+            if [[ -e .fpmpkg ]] && [[ $(find -H . -type f -newer .fpmpkg | wc -l) -gt 0 ]]; then
+                echo "Source directory unchanged, no files newer than $(stat -c %y .fpmpkg)"
+                changed=false
+            fi
         fi
         local pkg="$(cat .fpmpkg)"
-        if [[ "$head" != "$(git rev-parse HEAD)" ]] || ! [[ -e .fpmpkg ]] || ! [[ -L .fpmok ]]; then
+        if $changed || ! [[ -e .fpmpkg ]] || ! [[ -L .fpmok ]]; then
             rm -f .fpmok
             if [[ -n "$clean" ]] && [[ -n "$git" ]]; then
                 (set -x; git clean $clean )
@@ -116,12 +126,9 @@ update_repo(){
                     (set -x; ln -T "$rootdir/$repo/$pkg" "$debian/$repo.$timestamp/$pkg")
                 fi
             else
-                echo >>.fpm \
-                    -t deb \
-                    --name "$repo_id" \
-                    --version "$ver"
-                echo "+ fpm $(cat .fpm)" >&2
-                if fpm | tee fpm.log; then
+                export FPMOPTS="--name=$repo_id --version=$ver"
+                echo "+ fpm $FPMOPTS $(cat .fpm) -t deb" >&2
+                if fpm -t deb | tee fpm.log; then
                     pkg="$(tail -n 1 fpm.log | sed -re 's/^.*:path=>"(.*)"}$/\1/')"
                     echo "$pkg" >.fpmpkg
                     (set -x; cp "$pkg" "$debian/$repo.$timestamp")
