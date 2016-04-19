@@ -1,0 +1,4 @@
+--after-install after-install.sh
+--before-remove before-remove.sh
+-s dir -C fpmroot .
+
