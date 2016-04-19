@@ -1,0 +1,11 @@
+[Unit]
+Description=fpmbot run
+
+[Service]
+Type=oneshot
+Environment=RUNDIR=/run
+ExecStart=/usr/bin/fpmbot
+WorkingDirectory=/var/lib/fpmbot
+
+[Install]
+WantedBy=multi-user.target

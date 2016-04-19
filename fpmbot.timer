@@ -1,0 +1,7 @@
+[Unit]
+Description=Timer to start a fpmbot build
+
+[Timer]
+OnCalendar=10m
+AccuracySec=1m
+Persistent=true

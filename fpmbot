@@ -2,6 +2,8 @@
 # vim: sts=4:sw=4:et
 # Licence: GPLv3
 
+: ${RUNDIR:="$PWD"}
+
 tab="$(printf "\t")"
 timestamp="$(date +%Y%m%d.%H%M%S)"
 
@@ -47,6 +49,10 @@ var(){
         shift
     done
     return 1
+}
+
+has(){
+    which "$1" >/dev/null 2>&1
 }
 
 default_fpmgen='if [[ -x ./.fpmgen ]]; then ./.fpmgen; fi'
@@ -155,16 +161,16 @@ for repo in *.repo; do
     fi
 done
 
-while [[ -e fpmbot.pid ]]; do
-    pid=$(cat fpmbot.pid)
+while [[ -e "$RUNDIR/fpmbot.pid" ]]; do
+    pid=$(cat "$RUNDIR/fpmbot.pid")
     if ! [[ -e /proc/$pid ]]; then
-        rm fpmbot.pid
+        rm "$RUNDIR/fpmbot.pid"
     else
         echo "Another fpmbot is already running. Terminating" >&2
         exit 0
     fi
 done
-echo $$ >fpmbot.pid
+echo $$ >"$RUNDIR/fpmbot.pid"
 
 mkdir -p src
 shopt -s nullglob
@@ -205,5 +211,5 @@ for repo in src/*.repo; do
 done
 echo "fpmbot: done"
 
-rm fpmbot.pid
+rm "$RUNDIR/fpmbot.pid"
 

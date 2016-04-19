@@ -1,0 +1,11 @@
+[Unit]
+Description=Schedule fpmbot execution on inotify event
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/fpmbot-inotify src systemctl restart fpmbot.service
+WorkingDirectory=/var/lib/fpmbot
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

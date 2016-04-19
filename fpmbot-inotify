@@ -1,0 +1,11 @@
+#!/bin/bash
+# vim: sts=4:sw=4:et
+# Licence: GPLv3
+
+dir="$PWD/$1"
+shift
+
+if inotifywait -t 0 "$dir"; then
+    "$@"
+fi
+
