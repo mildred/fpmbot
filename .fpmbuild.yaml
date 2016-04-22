@@ -1,4 +1,7 @@
 --- 
+build:
+  prepare:
+    git submodule update --init
 env:
   docker:
     Dockerfile: |
