@@ -1,0 +1,46 @@
+#!/bin/bash
+set -e
+
+force=false
+keep=10
+
+while true; do
+  case "$1" in
+    -f) force=true  ;;
+    -n) force=false ;;
+    -k) shift; keep="$1" ;;
+    -h)
+      exec >&2
+      echo "$0 -f REPO -- delete old REPO.*"
+      echo "$0 -n REPO -- show what it would do (default)"
+      echo "$0 -h      -- this help"
+      echo
+      echo "Options:"
+      echo "   -k N    -- Keep the last N (10 by default) repos"
+      exit
+      ;;
+    --) shift; break ;;
+    *)  break ;;
+  esac
+  shift
+done
+
+repo="$1"
+
+if $force; then
+  delete(){
+    ( set -x
+      rm -rf "$1"
+    )
+  }
+else
+  delete(){
+    echo "+ rm -rf $1" >&2
+  }
+fi
+
+
+find "$(dirname "$repo")" -maxdepth 1 -name "$(basename "$repo").[0-9]*" -type d | sort -r | tail -n "+$keep" | while read d; do
+  delete "$d"
+done
+

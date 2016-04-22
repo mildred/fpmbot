@@ -35,3 +35,127 @@ A source package is always a Git repository. The package version is taken from `
 - `.fpmgen`: how to generate the `.fpm` file
 - `.fpm`: interpreted directly by fpm, the flags to pass to fpm to build the package
 
+Version 2
+=========
+
+fpmbot2
+-------
+
+The version 2 of this bot is written in go rathen than bash, and is available
+here as well. The design is different. Is it designed to be executed outside of
+any container on the host system. However, it can spawn a different container
+for each package it builds. Package building still occurs in a container, but
+each package can have a different environment.
+
+Also, the configuration is in YAML.
+
+A repository configuration looks like:
+
+    --- 
+    packages:
+      package_name: <fpmbuild package description>
+
+The fpmbuild package description is extended with the following keys:
+
+- `git`: the Git repository URL
+- `ref`: the Git reference to fetch. Default is `HEAD`.
+
+FPM Build
+---------
+
+This is the component of fpmbot2 that is responsible for building and packaging
+individual packages. A package consists of a source directory.
+
+The file `.fpmbuild.yaml` can optionally be present in that directory
+containing for example:
+
+    --- 
+    # Build commands. Optional, the defaults are presented here:
+    build:
+      # These commands are executed in this order. Each one can be individually
+      # overriden:
+      prepare:
+      build:   if [ -e Makefile ]; then make DESTDIR="$PWD/fpmroot"; fi
+      fpmgen:  if [ -e Makefile ]; then make DESTDIR="$PWD/fpmroot" .fpm || true; fi
+      install: if [ -e Makefile ]; then rm -rf fpmroot; make DESTDIR="$PWD/fpmroot" install; fi
+      # Shell:
+      shell:     sh
+      options:   ["-c", "-xe"]
+      arguments: []
+
+    # Environment specification: if not specified, runs on the host
+    env:
+      docker:
+        # Image specification
+        Dockerfile: |
+          FROM debian:testing
+          ENV DEBIAN_FRONTEND noninteractive
+          RUN apt-get update && apt-get install -y build-essential golang
+        # image name. Incompatible with Dockerfile
+        image: debian:stable
+        # source directory where the package is build. Optional. Default is /src
+        srcdir: /src
+
+    # Request a git clean if not empty (default is empty)
+    clean: -fdx
+
+    # Additional fpm options (default is empty). Replaces the need for a .fpm
+    # file
+    fpm: ["-s", "dir", "myapp=/usr/bin/myapp"]
+
+    # Additional FPM Hooks (default is empty)
+    fpm-hooks:
+        before-install: |
+            #!/bin/bash
+            echo Before install
+
+The `.fpm` file must be present (or generated) and contains the FPM command line
+arguments to build the paclage. FPM is executed outside of the build
+environment, so paths it contains must be relative.
+
+Using the environment variable `FPMOPTS`, the following flags will be set to
+sane defaults:
+
+- `--name`: set to the package name, the current directory name
+- `--version`: set to the package version, taken from Git
+
+A common pattern is to have the build commands install everything in `./fpmroot`
+and then use the following fpm arguments: `-s dir -C fpmroot`
+
+FPRepo
+------
+
+The scripts `fprepo-<format>` are scripts that creates a repository in the
+current directory from scanned packages.
+
+fpprunerepo
+-----------
+
+Prune old repositories in current directory. Repository name is the sole
+argument and it only heep the most recent 10 repositories.
+
+A repository is a directory matching `$1.[0-9]*`
+
+Bootstrapping
+=============
+
+You must build the packages on a machine with:
+
+- go language compiler
+- ruby
+- ruby gems
+- fpm (which is a ruby gem)
+
+Then:
+
+    make fpm
+
+will generate you packages to have fpm on your build server. This might not work, if so, just run on the server:
+
+    gem install fpm
+
+Then, on the build machine:
+
+    make package
+
+will generate you the fpmbot package for your build server. Install all those packages on your build server and you are set. You can use fpmbot to generate updates for these packages if you wish.

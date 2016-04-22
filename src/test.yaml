@@ -1,0 +1,19 @@
+--- 
+packages:
+  cjdns:
+    git: https://github.com/cjdelisle/cjdns.git
+    ref: staging
+    #clean: -fdx
+    fpm:
+      - -s
+      - dir
+      - cjdroute=/usr/bin/cjdroute
+    build:
+      build: ./do
+    env:
+      docker:
+        Dockerfile: |
+          FROM debian:testing
+          ENV DEBIAN_FRONTEND noninteractive
+          RUN apt-get update && apt-get install -y build-essential nodejs
+          RUN apt-get install -y python

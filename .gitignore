@@ -3,3 +3,6 @@
 /fpmbot.tar
 /src/*/
 *.sw?
+/fpmbot2
+/fpmbuild
+/fpmroot/

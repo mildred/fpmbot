@@ -1,0 +1,61 @@
+#!/bin/bash
+set -e
+
+while true; do
+  case "$1" in
+    -h)
+      exec >&2
+      echo "$0 GPG_KEYRING -- generate a debian repository from the current directory"
+      echo "$0 -h  -- this help"
+      exit
+      ;;
+    --) shift; break ;;
+    *)  break ;;
+  esac
+  shift
+done
+
+keyring="$1"
+
+deb-release(){
+  local archs=$(sed -re 's/^Architecture: (.*)/\1/p; d' "$1" | uniq)
+  echo "Date: $(date -Ru)"
+  echo "Architectures: $archs"
+  echo "Components: main"
+  echo "MD5Sum:"
+  deb-release_hash-file md5sum "$1"
+  deb-release_hash-file md5sum "$1.gz"
+  deb-release_hash-file md5sum "$1.bz2"
+  echo "SHA256:"
+  deb-release_hash-file sha256sum "$1"
+  deb-release_hash-file sha256sum "$1.gz"
+  deb-release_hash-file sha256sum "$1.bz2"
+}
+
+deb-release_hash-file(){
+  if [ -e "$2" ]; then
+    printf " %s %9d %s\n" "$("$1" <"$2"|cut -d' ' -f1)" "$(stat -c%s "$2")" "$2"
+  fi
+}
+
+if which gpg2 >/dev/null 2>&1; then
+  gpg=gpg2
+else
+  gpg=gpg
+fi
+
+if ! [ -e "$keyring" ]; then
+  (set -x; $gpg --keyring "$keyring" --no-default-keyring --batch --passphrase "" --quick-gen-key "$(whoami)")
+fi
+
+echo Packages
+dpkg-scanpackages . >Packages
+echo Packages.bz2
+bzip2 -9c >Packages.bz2 <Packages
+echo Release
+deb-release Packages >Release
+echo "InRelease"
+$gpg --keyring "$keyring" --no-default-keyring -o InRelease --batch --clearsign Release
+echo publickey
+$gpg --keyring "$keyring" --no-default-keyring --batch --export -a >publickey
+

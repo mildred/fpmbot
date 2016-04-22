@@ -1,0 +1,26 @@
+--- 
+packages:
+  rubygem-fpm:
+    fpm: ["-s", "gem", "fpm"]
+  rubygem-json:
+    fpm: ["-s", "gem", "json"]
+  rubygem-cabin:
+    fpm: ["-s", "gem", "cabin"]
+  rubygem-backports:
+    fpm: ["-s", "gem", "backports"]
+  rubygem-arr-pm:
+    fpm: ["-s", "gem", "arr-pm"]
+  rubygem-clamp:
+    fpm: ["-s", "gem", "-v", "0.6", "clamp"]
+  rubygem-childprocess:
+    fpm: ["-s", "gem", "childprocess"]
+  rubygem-ffi:
+    fpm: ["-s", "gem", "ffi"]
+  rubygem-archive-tar-minitar:
+    fpm: ["-s", "gem", "archive-tar-minitar"]
+  rubygem-ruby-xz:
+    fpm: ["-s", "gem", "ruby-xz"]
+  rubygem-io-like:
+    fpm: ["-s", "gem", "io-like"]
+  rubygem-corefines:
+    fpm: ["-s", "gem", "corefines"]
