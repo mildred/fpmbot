@@ -200,6 +200,18 @@ func run(repofname string, target string, sudo bool, datadir string) (res int) {
 				continue
 			}
 
+			log.Printf("git submodule update --init --force --checkout --recursive")
+			cmd = exec.Command("git", "submodule", "update", "--init", "--force", "--checkout", "--recursive")
+			cmd.Dir = srcdir
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+			err = cmd.Run()
+			if err != nil {
+				log.Println(err)
+				res += 1
+				continue
+			}
+
 			revabs, err := GitRevParseHead(srcdir)
 			if err != nil {
 				log.Println(err)
