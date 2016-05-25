@@ -8,6 +8,7 @@ INSTALL_METHOD=system
 all:
 ifeq ($(INSTALL_METHOD),system)
 	$(MAKE) fpmbuild
+	$(MAKE) fpmbot2
 endif
 
 ifeq ($(INSTALL_METHOD),docker)
