@@ -122,11 +122,13 @@ func run(repofname string, target string, sudo bool, datadir string) (res int) {
 		}
 
 		log.Printf("Package %s", name)
-		err = writeYAML(srcdir+".yaml", item.Value)
-		if err != nil {
-			log.Println(err)
-			res += 1
-			continue
+		if item.Value != nil {
+			err = writeYAML(srcdir+".yaml", item.Value)
+			if err != nil {
+				log.Println(err)
+				res += 1
+				continue
+			}
 		}
 
 		var gitpkg GitPackage
