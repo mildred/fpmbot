@@ -52,8 +52,12 @@ Also, the configuration is in YAML.
 A repository configuration looks like:
 
     --- 
+    target: <fpm target, optional, "deb", "rpm", ...>
     packages:
       package_name: <fpmbuild package description>
+
+The target specified on the command line overrides the target specified on the
+reposuitory file.
 
 The fpmbuild package description is extended with the following keys:
 

@@ -17,6 +17,7 @@ import (
 )
 
 type Repository struct {
+	Target   string        `yaml:"target"`
 	Packages yaml.MapSlice `yaml:"packages"`
 }
 
@@ -68,6 +69,16 @@ func main() {
 }
 func run(repofname string, target string, sudo bool, datadir string) (res int) {
 	var repo Repository
+	err := readYAML(repofname, &repo)
+	if err != nil {
+		log.Println(err)
+		res = 1
+		return
+	}
+	if target == "" {
+		target = repo.Target
+	}
+
 	repoext := filepath.Ext(repofname)
 	repodir := repofname[:len(repofname)-len(repoext)]
 	if datadir != "" {
@@ -94,12 +105,6 @@ func run(repofname string, target string, sudo bool, datadir string) (res int) {
 	}
 
 	err = os.MkdirAll(reposrcdir, 0777)
-	if err != nil {
-		log.Println(err)
-		res = 1
-		return
-	}
-	err = readYAML(repofname, &repo)
 	if err != nil {
 		log.Println(err)
 		res = 1
