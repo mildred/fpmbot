@@ -15,7 +15,8 @@ while true; do
   shift
 done
 
-keyring="$1"
+reponame="$1"
+keyring="../$reponame.gpg"
 
 deb-release(){
   local archs=$(sed -re 's/^Architecture: (.*)/\1/p; d' "$1" | uniq)

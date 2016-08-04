@@ -73,19 +73,20 @@ func run(repofname string, target string, sudo bool, datadir string) (res int) {
 	if datadir != "" {
 		repodir = filepath.Join(datadir, filepath.Base(repodir))
 	}
+	repotargetdir := fmt.Sprintf("%s.%s", repodir, target)
 	reposrcdir := fmt.Sprintf("%s.src", repodir)
-	repopkgdir := fmt.Sprintf("%s.%s", repodir, time.Now().Format("20060102-150405"))
+	repopkgdir := fmt.Sprintf("%s.%s", repotargetdir, time.Now().Format("20060102-150405"))
 	log.Printf("Starting fpmbot2...")
 	log.Printf("Building packages from %s", reposrcdir)
 	log.Printf("Writing packages to %s", repopkgdir)
 
-	repoprevdir, err := os.Readlink(repodir)
+	repoprevdir, err := os.Readlink(repotargetdir)
 	if err != nil && !os.IsNotExist(err) {
 		log.Println(err)
 		res = 1
 		return
 	} else if err == nil {
-		repoprevdir = filepath.Join(filepath.Dir(repodir), repoprevdir)
+		repoprevdir = filepath.Join(filepath.Dir(repotargetdir), repoprevdir)
 		log.Printf("Previous build in %s", repoprevdir)
 	} else {
 		repoprevdir = ""
@@ -294,10 +295,10 @@ func run(repofname string, target string, sudo bool, datadir string) (res int) {
 		}
 	}
 
-	log.Println("Package build successfuli, generating metadata")
+	log.Println("Package build successful, generating metadata")
 
-	log.Printf("fprepo-%s ../%s.gpg", target, filepath.Base(repodir))
-	cmd := exec.Command("fprepo-"+target, "../"+filepath.Base(repodir)+".gpg")
+	log.Printf("fprepo-%s %s", target, filepath.Base(repodir))
+	cmd := exec.Command("fprepo-"+target, filepath.Base(repodir))
 	cmd.Dir = repopkgdir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -310,31 +311,31 @@ func run(repofname string, target string, sudo bool, datadir string) (res int) {
 
 	log.Println("Switching over to the new repository")
 
-	err = os.Remove(repodir + ".new")
+	err = os.Remove(repotargetdir + ".new")
 	if err != nil && !os.IsNotExist(err) {
 		log.Println(err)
 		res += 1
 		return
 	}
 
-	err = os.Symlink(filepath.Base(repopkgdir), repodir+".new")
+	err = os.Symlink(filepath.Base(repopkgdir), repotargetdir+".new")
 	if err != nil {
 		log.Println(err)
 		res += 1
 		return
 	}
 
-	err = os.Rename(repodir+".new", repodir)
+	err = os.Rename(repotargetdir+".new", repotargetdir)
 	if err != nil {
 		log.Println(err)
 		res += 1
 		return
 	}
 
-	log.Printf("%s -> %s", repodir, filepath.Base(repopkgdir))
+	log.Printf("%s -> %s", repotargetdir, filepath.Base(repopkgdir))
 
-	log.Printf("fpprunerepo -f %s", repodir)
-	cmd = exec.Command("fpprunerepo", "-f", repodir)
+	log.Printf("fpprunerepo -f %s", repotargetdir)
+	cmd = exec.Command("fpprunerepo", "-f", repotargetdir)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err = cmd.Run()
