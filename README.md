@@ -63,6 +63,8 @@ The fpmbuild package description is extended with the following keys:
 
 - `git`: the Git repository URL
 - `ref`: the Git reference to fetch. Default is `HEAD`.
+- `dir`: allow to specify a subdirectory of the repository from which to create
+  the package
 
 FPM Build
 ---------

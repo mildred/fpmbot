@@ -23,6 +23,7 @@ type Repository struct {
 
 type GitPackage struct {
 	GitURL string `yaml:"git"`
+	Subdir string `yaml:"dir"`
 	Ref    string `yaml:"ref"`
 }
 
@@ -260,13 +261,25 @@ func run(repofname string, target string, sudo bool, datadir string) (res int) {
 				continue
 			}
 
-			args := []string{"-config", "../" + name + ".yaml", "-f", "-o", pkgdirabs, "-t", target}
+			srcsubdir := srcdir
+			if gitpkg.Subdir != "" {
+				srcsubdir = filepath.Join(srcsubdir, gitpkg.SubDir)
+			}
+
+			backdir, err := filepath.Rel(srcsubdir, reposrcdir)
+			if err != nil {
+				log.Println(err)
+				res += 1
+				continue
+			}
+
+			args := []string{"-config", filepath.Join(backdir, name+".yaml"), "-f", "-o", pkgdirabs, "-t", target}
 			if sudo {
 				args = append([]string{"-sudo"}, args...)
 			}
 			log.Printf("fpmbuild %s", strings.Join(args, " "))
 			cmd := exec.Command("fpmbuild", args...)
-			cmd.Dir = srcdir
+			cmd.Dir = srcsubdir
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
 			err = cmd.Run()
