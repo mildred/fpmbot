@@ -263,7 +263,7 @@ func run(repofname string, target string, sudo bool, datadir string) (res int) {
 
 			srcsubdir := srcdir
 			if gitpkg.Subdir != "" {
-				srcsubdir = filepath.Join(srcsubdir, gitpkg.SubDir)
+				srcsubdir = filepath.Join(srcsubdir, gitpkg.Subdir)
 			}
 
 			backdir, err := filepath.Rel(srcsubdir, reposrcdir)
