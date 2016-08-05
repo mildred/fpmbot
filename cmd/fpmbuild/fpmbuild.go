@@ -97,7 +97,11 @@ func main() {
 		}
 	}
 
-	if _, e := os.Stat(".git"); !os.IsNotExist(e) {
+	cmd := exec.Command("git", "rev-parse")
+	cmd.Stdin = nil
+	cmd.Stdout = nil
+	cmd.Stderr = nil
+	if cmd.Run() == nil {
 
 		// Compute staging area hash
 
@@ -214,7 +218,7 @@ func main() {
 	}
 	args = append(args, fpmbuild.FPM...)
 	log.Printf("fpm [%s ] %s", opts, strings.Join(args, " "))
-	cmd := exec.Command("fpm", args...)
+	cmd = exec.Command("fpm", args...)
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 	cmd.Env = append(os.Environ(), "FPMOPTS="+opts)
