@@ -10,5 +10,6 @@ fpm-hooks:
   after-install: |
     #!/bin/bash
     set -e
-    systemctl enable --no-block --now fpmbot.timer
+    systemctl enable --no-block fpmbot.timer
+    systemctl start --no-block fpmbot.timer
     systemctl enable --no-block fpmbot.service
