@@ -5,3 +5,6 @@ Description=Timer to start a fpmbot build
 OnUnitActiveSec=6h
 AccuracySec=1m
 Persistent=true
+
+[Install]
+WantedBy=multi-user.target
