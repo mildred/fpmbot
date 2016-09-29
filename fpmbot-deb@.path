@@ -1,0 +1,9 @@
+[Unit]
+Description=Check changes to fpmbot source paths
+
+[Path]
+PathChanged=/var/lib/fpmbot/%i.src/.git/checkout
+Unit=fpmbot-deb@%i.service
+
+[Install]
+WantedBy=default.target

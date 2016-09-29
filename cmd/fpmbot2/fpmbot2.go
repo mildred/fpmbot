@@ -82,12 +82,12 @@ func run(repofname string, target string, sudo bool, datadir string) (res int) {
 		repodir = filepath.Join(datadir, repofname)
 		repoyaml = filepath.Join(repodir, "_repo.yaml")
 	} else if st.IsDir() {
+		repoext := filepath.Ext(repofname)
+		repodir = repofname[:len(repofname)-len(repoext)]
 		if datadir != "" {
-			repodir = filepath.Join(datadir, filepath.Base(repofname))
-		} else {
-			repodir = repofname
+			repodir = filepath.Join(datadir, filepath.Base(repodir))
 		}
-		repoyaml = filepath.Join(repodir, "_repo.yaml")
+		repoyaml = filepath.Join(repodir+".src", "_repo.yaml")
 	} else {
 		repoext := filepath.Ext(repofname)
 		repodir = repofname[:len(repofname)-len(repoext)]
