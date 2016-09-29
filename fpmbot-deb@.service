@@ -1,0 +1,11 @@
+[Unit]
+Description=Generate a debian repository from fpmbot sources
+
+[Service]
+Type=oneshot
+Environment=RUNDIR=/run
+ExecStart=/usr/bin/fpmbot2 -datadir . -t deb %i
+WorkingDirectory=/var/lib/fpmbot
+
+[Install]
+WantedBy=multi-user.target

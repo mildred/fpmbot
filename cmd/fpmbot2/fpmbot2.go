@@ -70,7 +70,34 @@ func main() {
 }
 func run(repofname string, target string, sudo bool, datadir string) (res int) {
 	var repo Repository
-	err := readYAML(repofname, &repo)
+	var repodir string
+	var repoyaml string
+
+	st, st_err := os.Stat(repofname)
+	if st_err != nil && (!os.IsNotExist(st_err) || datadir == "") {
+		log.Println(st_err)
+		res = 1
+		return
+	} else if datadir != "" && st_err != nil {
+		repodir = filepath.Join(datadir, repofname)
+		repoyaml = filepath.Join(repodir, "_repo.yaml")
+	} else if st.IsDir() {
+		if datadir != "" {
+			repodir = filepath.Join(datadir, filepath.Base(repofname))
+		} else {
+			repodir = repofname
+		}
+		repoyaml = filepath.Join(repodir, "_repo.yaml")
+	} else {
+		repoext := filepath.Ext(repofname)
+		repodir = repofname[:len(repofname)-len(repoext)]
+		repoyaml = repofname
+		if datadir != "" {
+			repodir = filepath.Join(datadir, filepath.Base(repodir))
+		}
+	}
+
+	err := readYAML(repoyaml, &repo)
 	if err != nil {
 		log.Println(err)
 		res = 1
@@ -80,11 +107,6 @@ func run(repofname string, target string, sudo bool, datadir string) (res int) {
 		target = repo.Target
 	}
 
-	repoext := filepath.Ext(repofname)
-	repodir := repofname[:len(repofname)-len(repoext)]
-	if datadir != "" {
-		repodir = filepath.Join(datadir, filepath.Base(repodir))
-	}
 	repotargetdir := fmt.Sprintf("%s.%s", repodir, target)
 	reposrcdir := fmt.Sprintf("%s.src", repodir)
 	repopkgdir := fmt.Sprintf("%s.%s", repotargetdir, time.Now().Format("20060102-150405"))

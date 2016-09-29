@@ -44,6 +44,7 @@ install:
 	mkdir -p $(DESTDIR)/usr/lib/systemd/system
 	install -m644 fpmbot.timer $(DESTDIR)/usr/lib/systemd/system/fpmbot.timer
 	install -m644 fpmbot.service $(DESTDIR)/usr/lib/systemd/system/fpmbot.service
+	install -m644 fpmbot-deb@.service $(DESTDIR)/usr/lib/systemd/system/fpmbot-deb@.service
 	install -m644 fpmbot-inotify.service $(DESTDIR)/usr/lib/systemd/system/fpmbot-inotify.service
 	#install -m644 fpm.yaml $(DESTDIR)/etc/fpmbuild.d/fpm.yaml
 
