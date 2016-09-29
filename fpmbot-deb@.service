@@ -1,5 +1,6 @@
 [Unit]
 Description=Generate a debian repository from fpmbot sources
+PartOf=fpmbot.service
 
 [Service]
 Type=oneshot
