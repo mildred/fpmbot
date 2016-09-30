@@ -97,20 +97,20 @@ func run(repofname string, target string, sudo bool, datadir string) (res int) {
 	} else if datadir != "" && st_err != nil {
 		repodir = filepath.Join(datadir, repofname)
 		repoyaml = filepath.Join(repodir, "_repo.yaml")
-	} else if st.IsDir() {
-		repoext := filepath.Ext(repofname)
-		repodir = repofname[:len(repofname)-len(repoext)]
-		if datadir != "" {
-			repodir = filepath.Join(datadir, filepath.Base(repodir))
-		}
-		repoyaml = filepath.Join(repodir+".src", "_repo.yaml")
-	} else {
+	} else if st_err == nil && !st.IsDir() {
 		repoext := filepath.Ext(repofname)
 		repodir = repofname[:len(repofname)-len(repoext)]
 		repoyaml = repofname
 		if datadir != "" {
 			repodir = filepath.Join(datadir, filepath.Base(repodir))
 		}
+	} else {
+		repoext := filepath.Ext(repofname)
+		repodir = repofname[:len(repofname)-len(repoext)]
+		if datadir != "" {
+			repodir = filepath.Join(datadir, filepath.Base(repodir))
+		}
+		repoyaml = filepath.Join(repodir+".src", "_repo.yaml")
 	}
 
 	err := readYAML(repoyaml, &repo)

@@ -1,9 +1,11 @@
 [Unit]
-Description=Execute fpmbot
+Description=fpmbot run
 
 [Service]
 Type=oneshot
-ExecStart=/bin/true
+Environment=RUNDIR=/run
+ExecStart=/bin/sh -c 'exec /usr/bin/fpmbot2 -datadir . -t deb /etc/fpmbot.d/*.yaml'
+WorkingDirectory=/var/lib/fpmbot
 
 [Install]
 WantedBy=multi-user.target
