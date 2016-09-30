@@ -3,8 +3,10 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha1"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -38,6 +40,20 @@ func readYAML(file string, object interface{}) error {
 		return err
 	}
 	return yaml.Unmarshal(data, object)
+}
+
+func hashFile(file string) (string, error) {
+	f, err := os.Open(file)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+	h := sha1.New()
+	_, err = io.Copy(h, f)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%x", h.Sum(nil)), nil
 }
 
 func writeYAML(file string, object interface{}) error {
@@ -168,6 +184,8 @@ func run(repofname string, target string, sudo bool, datadir string) (res int) {
 			continue
 		}
 
+		yamlhash, _ := hashFile(srcdir + ".yaml")
+
 		err = os.MkdirAll(srcdir, 0777)
 		if err != nil {
 			log.Println(err)
@@ -257,7 +275,7 @@ func run(repofname string, target string, sudo bool, datadir string) (res int) {
 				continue
 			}
 
-			if err == nil && string(revokfile) == revabs && prevdir != "" {
+			if err == nil && string(revokfile) == revabs+"-"+yamlhash && prevdir != "" {
 				dirty = false
 				log.Printf("Package already at revision %s", revabs)
 			}
@@ -322,7 +340,7 @@ func run(repofname string, target string, sudo bool, datadir string) (res int) {
 				continue
 			}
 
-			err = ioutil.WriteFile(srcdir+".ok", []byte(revabs), 0666)
+			err = ioutil.WriteFile(srcdir+".ok", []byte(revabs+"-"+yamlhash), 0666)
 			if err != nil {
 				log.Println(err)
 				res += 1
