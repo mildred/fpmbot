@@ -168,7 +168,7 @@ func main() {
 		} else {
 
 			buf.Reset()
-			cmd = exec.Command("git", "describe", "--dirty="+dirtymark, "--always")
+			cmd = exec.Command("git", "describe", "--dirty="+dirtymark, "--always", "--tags")
 			cmd.Stdout = &buf
 			if err := cmd.Run(); err != nil {
 				log.Println(err)
