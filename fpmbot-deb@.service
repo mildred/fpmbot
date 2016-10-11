@@ -5,7 +5,7 @@ PartOf=fpmbot.service
 [Service]
 Type=oneshot
 Environment=RUNDIR=/run
-ExecStart=/usr/bin/fpmbot2 -datadir . -t deb %i
+ExecStart=/usr/bin/fpmbot2 -datadir . -t deb %i.src
 WorkingDirectory=/var/lib/fpmbot
 
 [Install]
