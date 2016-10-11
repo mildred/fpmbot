@@ -224,7 +224,7 @@ func run(repofname string, target string, sudo bool, datadir string) (res int) {
 
 			log.Printf("git -c core.bare=true fetch -f origin +refs/*:refs/* HEAD")
 			cmd = exec.Command("git", "-c", "core.bare=true", "fetch", "-f", "origin", "+refs/*:refs/*", "HEAD")
-			cmd.Dir = srcdir
+			cmd.Dir = filepath.Join(srcdir, ".git")
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
 			err = cmd.Run()
