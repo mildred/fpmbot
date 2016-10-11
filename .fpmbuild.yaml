@@ -5,7 +5,7 @@ env:
       FROM debian:testing
       ENV DEBIAN_FRONTEND noninteractive
       RUN apt-get update && apt-get install -y build-essential golang
-#fpm: ["-d", "rubygem-fpm"]
+fpm: ["-dfpm", "-ddocker"]
 fpm-hooks:
   after-install: |
     #!/bin/bash
