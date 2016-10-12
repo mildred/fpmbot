@@ -19,7 +19,7 @@ reponame="$1"
 keyring="../$reponame.gpg"
 
 deb-release(){
-  local archs=$(sed -re 's/^Architecture: (.*)/\1/p; d' "$1" | uniq)
+  local archs=$(sed -re 's/^Architecture: (.*)/\1/p; d' "$1" | sort | uniq | xargs)
   echo "Date: $(date -Ru)"
   echo "Architectures: $archs"
   echo "Components: main"
