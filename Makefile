@@ -9,6 +9,7 @@ all:
 ifeq ($(INSTALL_METHOD),system)
 	$(MAKE) fpmbuild
 	$(MAKE) fpmbot2
+	$(MAKE) fprepo
 endif
 
 ifeq ($(INSTALL_METHOD),docker)
@@ -30,7 +31,7 @@ fpmbot.tar:
 	docker save -o $@ fpmbot
 install-testrepo install-fpmbot:
 	ansible-playbook $(ANSIBLEFLAGS) $@.yml
-fpmbuild fpmbot2:
+fpmbuild fpmbot2 fprepo:
 	GOPATH="$$PWD/gopath:$${GOPATH:-"$$PWD/gopath"}" go build -v -o $@ ./cmd/$@/
 
 ifeq ($(INSTALL_METHOD),system)
@@ -38,6 +39,7 @@ install:
 	mkdir -p $(DESTDIR)/usr/bin
 	install -m755 fpmbot2 $(DESTDIR)/usr/bin/fpmbot2
 	install -m755 fpprunerepo $(DESTDIR)/usr/bin/fpprunerepo
+	install -m755 fprepo $(DESTDIR)/usr/bin/fprepo
 	install -m755 fprepo-deb $(DESTDIR)/usr/bin/fprepo-deb
 	install -m755 fpmbuild $(DESTDIR)/usr/bin/fpmbuild
 	install -m755 fpmbot-inotify $(DESTDIR)/usr/bin/fpmbot-inotify
@@ -66,10 +68,10 @@ endif
 
 TARGET ?= deb
 FPMBUILD_SUDO ?= -sudo
-fpm: fpmbot2 fpmbuild
+fpm: fpmbot2 fpmbuild fprepo
 	PATH="$$PATH:$$PWD" ./fpmbot2 -t $(TARGET) fpm.yaml
 
 package: fpmbuild
 	./fpmbuild $(FPMBUILD_SUDO) -t $(TARGET)
 
-.PHONY: all help build fpmbot.tar install-testrepo install-fpmbot install fpmbuild fpmbot2 fpm package
+.PHONY: all help build fpmbot.tar install-testrepo install-fpmbot install fpmbuild fprepo fpmbot2 fpm package

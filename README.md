@@ -157,6 +157,25 @@ and API key to that service in order to publich the packages. In the future it
 should not rely so much on systemd timer and inotify events, but instead be a
 service of its own with a webhook that can be triggered to build a repository.
 
+fprepo
+======
+
+Manages a package format specific repository. Listen on HTTP protocol and
+accepts API requests with methods PUT and POST protected by an API Key that must
+be specified on HTTP header `APIKey`.
+
+- `PUT /reponame/releaseid/package.{deb,rpm,...}`: Add a package to a release.
+  The release must not have been published.
+- `PUT /reponame/releasetag/?from=releaseid`: Release `releaseid` under
+  `releasetag`
+
+Typical usage would be for the continuous integration server (fpmbot) to send
+all package files using the build timestamp as `releaseid` and then to release
+it with `PUT /reponame/latest/?from=<timestamp>`
+
+`fprepo` make use of diverse helpers per format like `fprepo-deb`
+
+
 Bootstrapping
 =============
 
