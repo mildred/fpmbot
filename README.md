@@ -5,7 +5,7 @@ This is a build bot for the [Effing Package Manager](http://github.com/jordansis
 
 The goal is to generate a package repository that can be included right next to your distribution's repositories. This way, you can create package, and manage your servers like this.
 
-Fpmbit is designed to be run as a Docker container. See `make help` for information about Docker build process and Ansible deployment. The container provides two volumes:
+Fpmbot is designed to be run as a Docker container. See `make help` for information about Docker build process and Ansible deployment. The container provides two volumes:
 
 - `/var/log/fpmbot`: the logs
 - `/var/lib/fpmbot`: the main directory
@@ -35,11 +35,8 @@ A source package is always a Git repository. The package version is taken from `
 - `.fpmgen`: how to generate the `.fpm` file
 - `.fpm`: interpreted directly by fpm, the flags to pass to fpm to build the package
 
-Version 2
-=========
-
 fpmbot2
--------
+=======
 
 The version 2 of this bot is written in go rathen than bash, and is available
 here as well. The design is different. Is it designed to be executed outside of
@@ -66,8 +63,13 @@ The fpmbuild package description is extended with the following keys:
 - `dir`: allow to specify a subdirectory of the repository from which to create
   the package
 
+Ideas for the future
+--------------------
+
+Use `flatpak-builder --run` to build package as simple user and not as root.
+
 FPM Build
----------
+=========
 
 This is the component of fpmbot2 that is responsible for building and packaging
 individual packages. A package consists of a source directory.
@@ -141,6 +143,19 @@ Prune old repositories in current directory. Repository name is the sole
 argument and it only heep the most recent 10 repositories.
 
 A repository is a directory matching `$1.[0-9]*`
+
+Roadmap
+-------
+
+Externalise the distribution repository build to external services. A
+debian-repository service must be running elsewhere which provides a public
+interface to download the packages, and an API-Key protected interface to create
+new releases, add package to them, and make the release.
+
+Then, the yaml file describing the repository will just need to give the address
+and API key to that service in order to publich the packages. In the future it
+should not rely so much on systemd timer and inotify events, but instead be a
+service of its own with a webhook that can be triggered to build a repository.
 
 Bootstrapping
 =============
