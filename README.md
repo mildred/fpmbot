@@ -131,33 +131,6 @@ A common pattern is to have the build commands install everything in `./fpmroot`
 and then use the following fpm arguments: `-s dir -C fpmroot`
 
 FPRepo
-------
-
-The scripts `fprepo-<format>` are scripts that creates a repository in the
-current directory from scanned packages.
-
-fpprunerepo
------------
-
-Prune old repositories in current directory. Repository name is the sole
-argument and it only heep the most recent 10 repositories.
-
-A repository is a directory matching `$1.[0-9]*`
-
-Roadmap
--------
-
-Externalise the distribution repository build to external services. A
-debian-repository service must be running elsewhere which provides a public
-interface to download the packages, and an API-Key protected interface to create
-new releases, add package to them, and make the release.
-
-Then, the yaml file describing the repository will just need to give the address
-and API key to that service in order to publich the packages. In the future it
-should not rely so much on systemd timer and inotify events, but instead be a
-service of its own with a webhook that can be triggered to build a repository.
-
-fprepo
 ======
 
 Manages a package format specific repository. Listen on HTTP protocol and
@@ -175,6 +148,29 @@ it with `PUT /reponame/latest/?from=<timestamp>`
 
 `fprepo` make use of diverse helpers per format like `fprepo-deb`
 
+The scripts `fprepo-<format>` are scripts that creates a repository in the
+current directory from scanned packages.
+
+fpprunerepo
+===========
+
+Prune old repositories in current directory. Repository name is the sole
+argument and it only heep the most recent 10 repositories.
+
+A repository is a directory matching `$1.[0-9]*`
+
+Roadmap
+=======
+
+Externalise the distribution repository build to external services. A
+debian-repository service must be running elsewhere which provides a public
+interface to download the packages, and an API-Key protected interface to create
+new releases, add package to them, and make the release.
+
+Then, the yaml file describing the repository will just need to give the address
+and API key to that service in order to publich the packages. In the future it
+should not rely so much on systemd timer and inotify events, but instead be a
+service of its own with a webhook that can be triggered to build a repository.
 
 Bootstrapping
 =============

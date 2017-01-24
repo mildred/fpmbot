@@ -15,16 +15,24 @@ import (
 )
 
 func main() {
-	listen := ":80"
+	listen := "127.0.0.1:9158"
 	apikey := ""
+	keyfile := ""
 	format := "deb"
 
 	flag.StringVar(&listen, "listen", listen, "HTTP interface")
 	flag.StringVar(&apikey, "key", apikey, "HTTP API Key")
+	flag.StringVar(&keyfile, "keyfile", keyfile, "HTTP API Key file")
 	flag.StringVar(&format, "format", format, "Package format to serve")
 	flag.Parse()
 
-	if apikey == "" {
+	if apikey == "" && keyfile != "" {
+		apikey, err := keyFromFile(keyfile)
+		if err != nil {
+			log.Fatal(err)
+			os.Exit(1)
+		}
+	} else if apikey == "" {
 		apikey = randToken()
 		log.Printf("APIKey: %v", apikey)
 	}
@@ -37,6 +45,16 @@ func main() {
 
 	http.Handle("/", apiHandler)
 	http.ListenAndServe(listen, nil)
+}
+
+func keyFromFile(keyfile string) (string, error) {
+	data, err := ioutil.ReadFile(keyfile)
+	apikey := string(data)
+	if (err != nil && os.IsNotExist(err)) || apikey == "" {
+		apikey = randToken()
+		err = ioutil.WriteFile(keyfile, []byte(apikey), 0600)
+	}
+	return apikey, err
 }
 
 func randToken() string {
