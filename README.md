@@ -133,6 +133,8 @@ and then use the following fpm arguments: `-s dir -C fpmroot`
 FPRepo
 ======
 
+TODO: make the package format part of the API and not a command line argument.
+
 Manages a package format specific repository. Listen on HTTP protocol and
 accepts API requests with methods PUT and POST protected by an API Key that must
 be specified on HTTP header `APIKey`.
