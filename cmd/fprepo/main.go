@@ -27,7 +27,8 @@ func main() {
 	flag.Parse()
 
 	if apikey == "" && keyfile != "" {
-		apikey, err := keyFromFile(keyfile)
+		var err error
+		apikey, err = keyFromFile(keyfile)
 		if err != nil {
 			log.Fatal(err)
 			os.Exit(1)
